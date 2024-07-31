@@ -1,0 +1,2 @@
+[workspace]
+members = ["db", "db_http_server_lib", "db_http_server", "crawler"]
