@@ -1,5 +1,5 @@
 [package]
-name = "meowclient-shuttle"
+name = "db_shuttle"
 version = "0.1.0"
 edition = "2021"
 

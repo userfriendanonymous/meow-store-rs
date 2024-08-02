@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-rs2s = { path = "../../rs2s/rs2s" }
-http_input = { path = "../../rs2s/http_input" }
+rs2s = { git = "https://github.com/userfriendanonymous/rs2s-rs.git", package = "rs2s" }
+http_input = { git = "https://github.com/userfriendanonymous/http-input-rs.git" }
 hyper-util = { version = "0.1.6", features = ["full"] }
 hyper-tls = "0.6.0"
 reqwest = "0.12.5"

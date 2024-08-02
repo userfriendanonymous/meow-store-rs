@@ -1,3 +1,6 @@
 /target/
 /db_http_server/database_storage/
+/database_storage/
 /db_shuttle/database_storage/
+/db_shuttle/.shuttle-storage
+/db_shuttle/Secrets*.toml

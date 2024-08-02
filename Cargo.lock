@@ -167,6 +167,7 @@ checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
 [[package]]
 name = "binbuf"
 version = "0.1.0"
+source = "git+https://github.com/userfriendanonymous/bindb-rs.git#2fe6555558b5659e275d690b61dffd1300cb5e09"
 dependencies = [
  "binbuf_macros",
 ]
@@ -174,6 +175,7 @@ dependencies = [
 [[package]]
 name = "binbuf_macros"
 version = "0.1.0"
+source = "git+https://github.com/userfriendanonymous/bindb-rs.git#2fe6555558b5659e275d690b61dffd1300cb5e09"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -203,6 +205,7 @@ dependencies = [
 [[package]]
 name = "bindb"
 version = "0.1.0"
+source = "git+https://github.com/userfriendanonymous/bindb-rs.git#2fe6555558b5659e275d690b61dffd1300cb5e09"
 dependencies = [
  "binbuf",
  "extend",
@@ -477,6 +480,17 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
+ "tokio",
+ "warp",
+]
+
+[[package]]
+name = "db_shuttle"
+version = "0.1.0"
+dependencies = [
+ "db_http_server",
+ "shuttle-runtime",
+ "shuttle-warp",
  "tokio",
  "warp",
 ]
@@ -857,6 +871,7 @@ dependencies = [
 [[package]]
 name = "http_input"
 version = "0.1.0"
+source = "git+https://github.com/userfriendanonymous/http-input-rs.git#7397d84d2e47e57bf664d93b2eae08c0ff3fd38a"
 dependencies = [
  "bytes",
  "http 1.1.0",
@@ -1198,17 +1213,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fe751422e4a8caa417e13c3ea66452215d7d63e19e604f4980461212f3ae1322"
 dependencies = [
  "libc",
-]
-
-[[package]]
-name = "meowclient-shuttle"
-version = "0.1.0"
-dependencies = [
- "db_http_server",
- "shuttle-runtime",
- "shuttle-warp",
- "tokio",
- "warp",
 ]
 
 [[package]]
@@ -1806,6 +1810,7 @@ dependencies = [
 [[package]]
 name = "rs2s"
 version = "0.1.0"
+source = "git+https://github.com/userfriendanonymous/rs2s-rs.git#f3f4cafa8ab19d1ad5e5b7bc79e45667e8f0c2b5"
 dependencies = [
  "http 1.1.0",
  "http_input",
