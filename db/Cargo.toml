@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 binbuf = { path = "../../db/binbuf" }
 bincode = { version = "2.0.0-rc.3", features = ["derive"] }
-bindb = { path = "../../db/lib", package = "lib" }
+bindb = { path = "../../db/bindb" }
 serde = { version = "1.0.204", features = ["derive"] }
 serde_json = "1.0.120"
 meilisearch-sdk = "0.27.0"

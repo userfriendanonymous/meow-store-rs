@@ -15,8 +15,50 @@ mod users;
 
 // meilisearch --master-key="aSampleMasterKey"
 
-#[tokio::main]
-async fn main() {
+pub fn router(db: Arc<RwLock<db::Value>>)
+-> impl Filter<Extract = (impl warp::Reply,), Error = Rejection> + Clone + Send + Sync + 'static {
+    warp::path("users").and(
+        users::filter(db.clone())
+    )
+    .or(
+        warp::any()
+        .map(|| "Hello world!")
+    )
+}
+
+pub async fn create_ctx() -> Arc<RwLock<db::Value>> {
+    let meili_client = MeiliClient::new("http://localhost:7700", Some("aSampleMasterKey")).unwrap();
+
+    let (error_sender, mut error_receiver) = mpsc::channel(20);
+
+    let error_handle = tokio::spawn(async move {
+        while let Some(err) = error_receiver.recv().await {
+            println!("[INTERNAL ERROR]: {err:?}");
+        }
+    });
+
+    let mut db = unsafe {
+        db::Value::open(
+            meili_client,
+            Path::new("database_storage"),
+            db::OpenMode::Existing,
+            error_sender,
+        ).unwrap()
+    };
+
+    // db.add_user(db::user::Value {
+    //     name: "griffpatch".parse().unwrap(),
+    //     id: 104492,
+    //     scratch_team: false,
+    //     status: Cow::Borrowed("Some status..."),
+    //     bio: Cow::Borrowed("Some cool bio!"),
+    // }).await.unwrap();
+
+    let db = Arc::new(RwLock::new(db));
+    db
+}
+
+async fn r() {
     std::env::set_var("RUST_BACKTRACE", "1");
 
     let meili_client = MeiliClient::new("http://localhost:7700", Some("aSampleMasterKey")).unwrap();
@@ -48,13 +90,7 @@ async fn main() {
 
     let db = Arc::new(RwLock::new(db));
 
-    let filter = warp::path("users").and(
-        users::filter(db.clone())
-    )
-    .or(
-        warp::any()
-        .map(|| "Hello world!")
-    );
+    let filter = router(db.clone());
         
     warp::serve(filter)
         .run(([127, 0, 0, 1], 3030))

@@ -1,1 +1,3 @@
-# meow-store-rs
+# MeowStore
+
+custom database, binary custom encoding, meilisearch for full text search, binary tree for exact search, compact memory usage, performance wise, statistics, full data download, open source, token based, restricted access, highly configurable, two major pieces of software: database server and crawler, database server doesn't interact with scratch.mit.edu, crawler sends requests to scratch.mit.edu, gains information and sends it to the database server. Merging databases, memory mapped database, most of time taken writting the custom database, 
