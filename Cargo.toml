@@ -1,2 +1,2 @@
 [workspace]
-members = ["db", "db_http_server_lib", "db_http_server", "crawler", "db_shuttle"]
+members = ["db", "db_http_server_lib", "db_http_server", "crawler", "db_shuttle", "db_render", "cli"]

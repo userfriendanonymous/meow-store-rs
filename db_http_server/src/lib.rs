@@ -12,10 +12,11 @@ use warp::filters::path::param as warp_param;
 use lib::{inout_format, InoutFormat};
 use meilisearch_sdk::client::Client as MeiliClient;
 
+pub mod config;
 mod users;
 // mod tests;
 
-// meilisearch --master-key="aSampleMasterKey"
+// cd ~/Projects/meilidb && sudo meilisearch --master-key="aSampleMasterKey"
 
 fn router(db: Arc<RwLock<db::Value>>)
 -> impl Filter<Extract = (impl warp::Reply,), Error = Infallible> + Clone + Send + Sync + Sized + 'static {
@@ -59,4 +60,33 @@ pub async fn main(mode: OpenMode)
 
     let filter = router(db.clone());
     filter
+}
+
+pub async fn run_with_config(config: config::Run) {
+    let meili_client = MeiliClient::new(config.meili_addr, Some(config.meili_key)).unwrap();
+
+    let (error_sender, mut error_receiver) = mpsc::channel(20);
+    let _error_handle = tokio::spawn(async move {
+        while let Some(err) = error_receiver.recv().await {
+            println!("[INTERNAL ERROR]: {err:?}");
+        }
+    });
+
+    tokio::fs::create_dir_all(&config.db_path).await.unwrap();
+
+    let mut db = unsafe {
+        db::Value::open(
+            meili_client,
+            &config.db_path,
+            config.mode,
+            error_sender,
+        ).unwrap()
+    };
+    let db = Arc::new(RwLock::new(db));
+
+    let filter = router(db.clone());
+
+    warp::serve(filter)
+        .run(config.addr)
+        .await;
 }

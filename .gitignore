@@ -4,3 +4,4 @@
 /db_shuttle/database_storage/
 /db_shuttle/.shuttle-storage
 /db_shuttle/Secrets*.toml
+/cli_usage/
