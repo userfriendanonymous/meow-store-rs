@@ -1,13 +1,12 @@
 use std::{borrow::Cow, collections::VecDeque, time::Duration};
 use rs2s::{input::ItemsRange, Username};
 use http_input::{Bytes, Instance as HttpInput};
+pub mod config;
 
-#[tokio::main]
-async fn main() {
+pub async fn run_with_config(config: config::Run) {
     let client = reqwest::Client::new();
-    let mut state = State::new(client, "http://localhost:3030");
-    state.request_queue.users.push(rs2s::input::User(Username::new("griffpatch")));
-    state.request_queue.users_followers.push(rs2s::input::user::Followers(Username::new("griffpatch"), ItemsRange { offset: 0, limit: 40 }));
+    let mut state = State::new(client, &config.db_url);
+    state.request_queue.users.push(rs2s::input::User(Username::new(config.initial_user)));
     loop {
         state.request_respond().await.unwrap();
     }

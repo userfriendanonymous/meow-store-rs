@@ -17,6 +17,10 @@ pub enum Sub {
         #[clap(subcommand)]
         command: Db
     },
+    Crawler {
+        #[clap(subcommand)]
+        command: Crawler
+    },
     GenConfig {
         #[arg(long, short)]
         path: PathBuf,
@@ -42,9 +46,12 @@ pub enum Db {
     }
 }
 
-// #[derive(Args, Debug)]
-// #[command(version, about, long_about = None)]
-// pub enum Crawler {
-
-// }
+#[derive(Subcommand, Debug)]
+#[command(version, about, long_about = None)]
+pub enum Crawler {
+    Run {
+        #[arg(long, short)]
+        config: PathBuf,
+    }
+}
 

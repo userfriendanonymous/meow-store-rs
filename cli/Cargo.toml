@@ -5,7 +5,8 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.5.13", features = ["derive"] }
-db_http_server = { version = "0.1.0", path = "../db_http_server" }
+crawler = { path = "../crawler" }
+db_http_server = { path = "../db_http_server" }
 serde = "1.0.204"
 tokio = "1.39.2"
 toml = "0.8.19"
