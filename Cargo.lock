@@ -368,18 +368,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1462739cb27611015575c0c11df5df7601141071f07518d56fcc1be504cbec97"
 
 [[package]]
-name = "cli"
-version = "0.1.0"
-dependencies = [
- "clap",
- "crawler",
- "db_http_server",
- "serde",
- "tokio",
- "toml",
-]
-
-[[package]]
 name = "colorchoice"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1334,6 +1322,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fe751422e4a8caa417e13c3ea66452215d7d63e19e604f4980461212f3ae1322"
 dependencies = [
  "libc",
+]
+
+[[package]]
+name = "meowstore"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "crawler",
+ "db_http_server",
+ "serde",
+ "tokio",
+ "toml",
 ]
 
 [[package]]
