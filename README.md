@@ -150,7 +150,15 @@ I'm currently **not**:
 
 ## Contributing
 You can make contributions, but:
-- Some code may be hard to understand, because I didn't yet add documentation comments. (I'm working on this).
+- Some code may be hard to understand (especially code related to the `bindb-rs` library), because I didn't add documentation comments yet. (I'm working on this).
+
+Project folders:
+- `db/`: Database storing scratch.mit.edu data. (Not an HTTP server).
+- `db_http_server/`: Database HTTP server, uses `db/`.
+- `db_http_server_lib/`: Some shared types from `db_http_server/`.
+- `crawler/`: Crawler. Scrapes data from scratch.mit.edu and sends it to a database server.
+- `cli/`: CLI tool (`meowstore`) for managing (running/creating) a database and crawler.
+- `db_render/`, `db_shuttle/`, `api_showcase/`: You can ignore these. They're just my failed attempts to deploy this on shuttle-rs and some other stuff.
 
 This project also has these dependencies that I'm working on:
 - [bindb-rs](https://github.com/userfriendanonymous/bindb-rs): Custom database engine used by this project.
