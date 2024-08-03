@@ -2,7 +2,7 @@
 
 ## About
 MeowStore is a database storing data from scratch.mit.edu. 
-This project is divided into two major software components: **Database server** and **crawler** (scraper).
+This project is divided into two major software: **Database server** and **crawler** (scraper).
 - **Database server**: only stores the data, doesn't interact with the Scratch API. Uses a [custom file memory mapped database engine I made](https://github.com/userfriendanonymous/bindb-rs).
 For exact searches (such as getting a user by their username) binary tree structure is used.
 Uses [meilisearch](https://www.meilisearch.com/) for full-text search (Such as searching comments or forum posts by their contents).
