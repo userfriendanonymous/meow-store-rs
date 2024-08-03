@@ -14,11 +14,11 @@ Uses [meilisearch](https://www.meilisearch.com/) for full-text search (Such as s
 Binary en/decoding uses [bincode-rs](https://github.com/bincode-org/bincode).
 ### Get a user by username
 ```
-/users/get_by_name/{USERNAME}/{FORMAT}
+GET /users/get_by_name/{USERNAME}/{FORMAT}
 ```
 Example:
 ```
-/users/get_by_name/griffpatch/json
+GET /users/get_by_name/griffpatch/json
 ```
 Response:
 ```json
@@ -41,11 +41,11 @@ Response:
 ```
 ### Search users by their bio/status
 ```
-/users/search/{QUERY}/{FORMAT}
+GET /users/search/{QUERY}/{FORMAT}
 ```
 Example:
 ```
-/users/search/hello/json
+GET /users/search/someone/json
 ```
 Response:
 ```json
@@ -77,7 +77,40 @@ Response:
 }
 ```
 
+### Insert a user
+```
+POST /write/{BODY_FORMAT}/{RESPONSE_FORMAT}
+```
+Example
+```
+POST /write/json/json
+```
+Body:
+```json
+{
+    "name": "griffpatch",
+    "id": 1882674,
+    "scratch_team": false,
+    "loves": 3211809,
+    "favorites": 2887670,
+    "views": 295423368,
+    "remixes": 0,
+    "status": "Status ...",
+    "bio": "Bio ..."
+  }
+```
+Response:
+
+```json
+{
+    "Ok": false
+}
+```
+(`false` - successfully inserted, `true` - the user was already inserted before.)
+
 ## How to run locally
+I'm currently not hosting a database server so the only way to try this project is to run it locally.
+
 - Install meowstore cli tool:
 ```
 cargo install --git https://github.com/userfriendanonymous/meow-store-rs meowstore
@@ -88,6 +121,8 @@ cargo install --git https://github.com/userfriendanonymous/meow-store-rs meowsto
 ```
 meowstore gen-config -p "."
 ```
+You can view/edit the created files.
+
 - Create a database in "db" folder:
 ```
 meowstore db create -c "./db_create.toml" -p "./db"
@@ -101,7 +136,23 @@ meowstore db run -c "./db_run.toml" -p "./db"
 meowstore crawler run -c "./crawler.toml"
 ```
 
+Now you can make requests to a running database server.
+
 ## Plans
 - Add more fields to the users info (history, ...).
 - Add endpoints for projects, studios, forums, ...
 - Make it possible for the database server to optionally require authentication for `write` / `remove` endpoints.
+
+## Note
+I'm currently **not**:
+- Crawling/scraping/making requests to scratch.mit.edu.
+- Hosting a database server.
+
+## Contributing
+You can make contributions, but:
+- Some code may be hard to understand, because I didn't yet add documentation comments. (I'm working on this).
+
+This project also has these dependencies that I'm working on:
+- [bindb-rs](https://github.com/userfriendanonymous/bindb-rs): Custom database engine used by this project.
+- [rs2s](https://github.com/userfriendanonymous/rs2s-rs): Scratch API client.
+- [http-input](https://github.com/userfriendanonymous/http-input-rs): A small library that allows describing an HTTP request without actually sending it.
