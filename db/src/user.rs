@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 use binbuf::{BytesPtrConst, BytesPtr, Dynamic, Fixed};
-use crate::{BindbError, BindbErrorKind, BindbErrorOp, InternalError};
+use crate::{auth, BindbError, BindbErrorKind, BindbErrorOp, InternalError};
 use binbuf::impls::ArbNum;
 use super::Username as Name;
 use serde::{Serialize, Deserialize};
@@ -106,16 +106,25 @@ binbuf::fixed! {
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, bincode::Encode, bincode::Decode)]
 pub enum AddError {
     Internal,
+    Auth(auth::EnsureAuthError)
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, bincode::Encode, bincode::Decode)]
 pub enum SearchError {
     Internal,
+    Auth(auth::EnsureAuthError)
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, bincode::Encode, bincode::Decode)]
 pub enum RemoveByNameError {
     Internal,
+    Auth(auth::EnsureAuthError)
+}
+
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, bincode::Encode, bincode::Decode)]
+pub enum GetByNameError {
+    Auth(auth::EnsureAuthError),
+    NotFound,
 }
 
 impl super::Value {
@@ -124,7 +133,8 @@ impl super::Value {
     }
 
     // Returns true if already exists.
-    pub async fn add_user<'a>(&mut self, data: Value<'a>) -> Result<bool, AddError> {
+    pub async fn add_user<'a>(&mut self, auth_key: Option<&auth::Key>, data: Value<'a>) -> Result<bool, AddError> {
+        self.ensure_auth(auth::Op::Write, auth_key).map_err(AddError::Auth)?;
         let searched = self.users_name_index.search(&data.name);
         match searched.find() {
             Ok(_) => Ok(true),
@@ -169,13 +179,17 @@ impl super::Value {
         }
     }
 
-    pub fn user_by_name(&self, name: &Name) -> Option<Value<'static>> {
-        self.users_name_index.get(name).map(|id| {
-            self.users.get(id.unwrap()).into()
-        })
+    pub fn user_by_name(&self, auth_key: Option<&auth::Key>, name: &Name) -> Result<Value<'static>, GetByNameError> {
+        self.ensure_auth(auth::Op::Read, auth_key).map_err(GetByNameError::Auth)?;
+        self.users_name_index.get(name)
+            .map(|id| {
+                self.users.get(id.unwrap()).into()
+            })
+            .ok_or(GetByNameError::NotFound)
     }
 
-    pub async fn search_users<'a, 'b>(&'a self, query: &'b str) -> Result<Vec<Value<'static>>, SearchError> {
+    pub async fn search_users<'a, 'b>(&'a self, auth_key: Option<&auth::Key>, query: &'b str) -> Result<Vec<Value<'static>>, SearchError> {
+        self.ensure_auth(auth::Op::Read, auth_key).map_err(SearchError::Auth)?;
         let res = self.meili_client.index("users")
             .search()
             .with_query(query)
@@ -197,7 +211,8 @@ impl super::Value {
         Ok(hits)
     }
 
-    pub async fn remove_user_by_name(&mut self, name: &Name) -> Result<bool, RemoveByNameError> {
+    pub async fn remove_user_by_name(&mut self, auth_key: Option<&auth::Key>, name: &Name) -> Result<bool, RemoveByNameError> {
+        self.ensure_auth(auth::Op::Remove, auth_key).map_err(RemoveByNameError::Auth)?;
         let searched = self.users_name_index.search(name);
         match searched.find() {
             Ok(searched) => {

@@ -2,14 +2,17 @@ use std::{borrow::Cow, fs::File, path::{Path, PathBuf}, str::FromStr};
 use meilisearch_sdk::client::Client as MeiliClient;
 use binbuf::{BytesPtr, bytes_ptr, impls::{ArbNum, arb_num}};
 pub use bindb::storage::OpenMode;
+use ring::rand::SecureRandom;
 pub use username::Value as Username;
 pub use user::Value as User;
 use tokio::sync::mpsc;
 // pub use country::Value as Country;
 
+pub mod auth;
 pub mod username;
 // pub mod country;
 pub mod user;
+pub mod config;
 
 #[derive(Debug)]
 pub enum InternalError {
@@ -41,6 +44,7 @@ pub enum BindbErrorOp {
     UserByName,
     SearchUsers,
     RemoveUserByName,
+    GenAuth
 }
 
 #[derive(Debug)]
@@ -94,25 +98,12 @@ impl From<bindb::storage::single::OpenError> for OpenError {
 // endregion: OpenError
 
 pub struct Value {
+    config: config::Root,
+    auth: auth::Store,
     pub users: bindb::storage::IndexedDynamic<user::DbValue>,
     users_name_index: bindb::storage::BinaryTree<ArbNum<4, u64>, Username, ArbNum<4, u64>>,
     meili_client: MeiliClient,
     error_sender: mpsc::Sender<InternalError>
-}
-
-const STORAGE_FILES_NAMES: &[&'static str] = &[
-    "users_raw_free_locations",
-    "users_raw_entries",
-    "users_indices",
-    "users_free_ids",
-
-    "users_name_index_nodes",
-    "users_name_index_free_ids",
-    "users_name_index_header",
-];
-
-fn open_or_create_file<P: AsRef<Path>>(path: P) -> std::io::Result<File> {
-    File::options().read(true).write(true).create(true).open(path)
 }
 
 impl Value {
@@ -120,6 +111,7 @@ impl Value {
         meili_client: MeiliClient,
         dir_path: impl AsRef<Path>,
         mode: OpenMode,
+        config: config::Root,
         error_sender: mpsc::Sender<InternalError>,
     ) -> Result<Self, OpenError> {
         use bindb::storage;
@@ -138,7 +130,9 @@ impl Value {
         }
 
         Ok(Self {
+            config,
             meili_client,
+            error_sender,
             users: storage::IndexedDynamic::open(storage::indexed_dynamic::OpenConfig {
                 mode,
                 files: storage::indexed_dynamic::OpenFiles {
@@ -166,7 +160,18 @@ impl Value {
                     free_ids: 20,
                 },
             })?,
-            error_sender,
+            auth: storage::BinaryTree::open(storage::binary_tree::OpenConfig {
+                mode,
+                files: storage::binary_tree::OpenFiles {
+                    nodes: open_file!("auth_nodes"),
+                    free_ids: open_file!("auth_free_ids"),
+                    header: open_file!("auth_header"),
+                },
+                max_margins: storage::binary_tree::OpenMaxMargins {
+                    nodes: 20,
+                    free_ids: 20,
+                },
+            })?
         })
     }
 

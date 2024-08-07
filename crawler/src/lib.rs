@@ -1,11 +1,12 @@
 use std::{borrow::Cow, collections::VecDeque, time::Duration};
+use reqwest::header::HeaderValue;
 use rs2s::{input::ItemsRange, Username};
 use http_input::{Bytes, Instance as HttpInput};
 pub mod config;
 
 pub async fn run_with_config(config: config::Run) {
     let client = reqwest::Client::new();
-    let mut state = State::new(client, &config.db_url);
+    let mut state = State::new(client, &config.db_url, config.db_auth_key);
     state.request_queue.users.push(rs2s::input::User(Username::new(config.initial_user)));
     loop {
         state.request_respond().await.unwrap();
@@ -42,10 +43,11 @@ pub struct State {
     error_queue: Vec<Error>,
     db_url: reqwest::Url,
     bincode_config: bincode::config::Configuration,
+    auth_key: Option<db::auth::Key>,
 }
 
 impl State {
-    pub fn new(http_client: reqwest::Client, db_url: impl reqwest::IntoUrl) -> Self {
+    pub fn new(http_client: reqwest::Client, db_url: impl reqwest::IntoUrl, auth_key: Option<db::auth::Key>) -> Self {
         Self {
             request_queue: RequestQueue::default(),
             response_queue: ResponseQueue::default(),
@@ -53,6 +55,7 @@ impl State {
             db_url: db_url.into_url().unwrap(),
             http_client,
             bincode_config: bincode::config::standard(),
+            auth_key,
         }
     }
 
@@ -150,6 +153,11 @@ impl State {
             let res = self.http_client
                 .post(self.db_url.join("/users/write/bin/bin").unwrap())
                 .body(bincode::encode_to_vec(user, self.bincode_config).unwrap())
+                .header(
+                    "x-auth-key",
+                    self.auth_key.as_ref().map(|x| HeaderValue::from_bytes(x.as_bytes()).unwrap())
+                        .unwrap_or(HeaderValue::from_static(""))
+                )
                 .send()
                 .await
                 .map_err(RespondError::Http)?;

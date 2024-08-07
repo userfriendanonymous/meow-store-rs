@@ -4,10 +4,14 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-binbuf = { git = "https://github.com/userfriendanonymous/bindb-rs.git", package = "binbuf" }
+# binbuf = { git = "https://github.com/userfriendanonymous/bindb-rs.git", package = "binbuf" }
+binbuf = { path = "../../bindb/binbuf", package = "binbuf" }
+bindb = { path = "../../bindb/bindb", package = "bindb" }
 bincode = { version = "2.0.0-rc.3", features = ["derive"] }
-bindb = { git = "https://github.com/userfriendanonymous/bindb-rs.git", package = "bindb" }
+# bindb = { git = "https://github.com/userfriendanonymous/bindb-rs.git", package = "bindb" }
 serde = { version = "1.0.204", features = ["derive"] }
 serde_json = "1.0.120"
 meilisearch-sdk = "0.27.0"
 tokio = { version = "1", features = ["full"] }
+ring = "0.17.8"
+rand = "0.8.5"

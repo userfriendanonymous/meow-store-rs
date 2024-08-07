@@ -3,7 +3,7 @@ use http_input::Instance as HttpInput;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, bincode::Encode, bincode::Decode)]
 pub enum GetByNameError {
-    NotFound,
+    Get(db::user::GetByNameError)
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, bincode::Encode, bincode::Decode)]

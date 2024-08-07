@@ -9,4 +9,5 @@ pub struct Run {
     pub addr: SocketAddr,
     pub meili_addr: String,
     pub meili_key: String,
+    pub db: db::config::Root,
 }
