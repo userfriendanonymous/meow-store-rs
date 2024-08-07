@@ -111,6 +111,8 @@ Response:
 ## How to run locally
 I'm currently not hosting a database server so the only way to try this project is to run it locally.
 
+You need to have [meilisearch](https://meilisearch.com).
+
 - Install meowstore cli tool:
 ```
 cargo install --git https://github.com/userfriendanonymous/meow-store-rs meowstore
@@ -121,7 +123,13 @@ cargo install --git https://github.com/userfriendanonymous/meow-store-rs meowsto
 ```
 meowstore gen-config -p "."
 ```
-You can view/edit the created files.
+- Check the db_run.toml file, for meilisearch related fields:
+```toml
+meili_host = "http://localhost:7700"
+meili_key = "aSampleMasterKey"
+```
+- You can change these fields if you need. You'll need to have a [meilisearch](https://meilisearch.com) instance running.
+
 
 - Create a database in "db" folder:
 ```
@@ -137,6 +145,22 @@ meowstore crawler run -c "./crawler.toml"
 ```
 
 Now you can make requests to a running database server.
+
+## Authentication
+The database server can be configured to optionally require authentication key on different operations (read, write, remove).
+You can configure it in **db_run.toml**, see `require_auth` field:
+```toml
+[require_auth]
+read = false # Auth key isn't required. Anyone can perform read operations.
+write = true # Auth key is required on write operations.
+remove = true
+```
+You can generate an auth key while running a database with `meowstore db run`.
+
+To use the generated auth key with crawler, edit or add a `db_auth_key` field in **crawler.toml** config file:
+```toml
+db_auth_key = "XI4EEUDUCkOdG2j5" # Replace with your key
+```
 
 ## Plans
 - Add more fields to the users info (history, ...).
