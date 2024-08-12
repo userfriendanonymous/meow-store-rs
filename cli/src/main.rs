@@ -7,6 +7,7 @@ mod args;
 mod db_config;
 mod crawler_config;
 
+// cargo run -- gen-config -p "../cli_usage"
 // cargo run -- db create -c "../cli_usage/db_create.toml" -p "../cli_usage/db"
 // cargo run -- db run -c "../cli_usage/db_run.toml" -p "../cli_usage/db"
 // cargo run -- crawler run -c "../cli_usage/crawler.toml"

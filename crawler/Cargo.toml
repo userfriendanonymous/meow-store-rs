@@ -20,3 +20,4 @@ hyper = "0.14.30"
 bincode = { version = "2.0.0-rc.3", features = ["derive"] }
 rand = "0.8.5"
 db_http_server = { version = "0.1.0", path = "../db_http_server_lib", package = "db_http_server_lib" }
+chrono = "0.4.38"

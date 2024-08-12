@@ -5,12 +5,14 @@ pub use bindb::storage::OpenMode;
 use ring::rand::SecureRandom;
 pub use username::Value as Username;
 pub use user::Value as User;
+pub use project::Value as Project;
 use tokio::sync::mpsc;
 // pub use country::Value as Country;
 
 pub mod auth;
 pub mod username;
 // pub mod country;
+pub mod project;
 pub mod user;
 pub mod config;
 
@@ -40,11 +42,13 @@ impl BindbError {
 
 #[derive(Debug)]
 pub enum BindbErrorOp {
+    GenAuth,
     AddUser,
     UserByName,
     SearchUsers,
     RemoveUserByName,
-    GenAuth
+    AddProject,
+    ProjectById,
 }
 
 #[derive(Debug)]
@@ -102,6 +106,8 @@ pub struct Value {
     auth: auth::Store,
     pub users: bindb::storage::IndexedDynamic<user::DbValue>,
     users_name_index: bindb::storage::BinaryTree<ArbNum<4, u64>, Username, ArbNum<4, u64>>,
+    projects: bindb::storage::IndexedDynamic<project::DbRepr>,
+    projects_id_index: bindb::storage::BinaryTree<ArbNum<8, u64>, u64, ArbNum<8, u64>>,
     meili_client: MeiliClient,
     error_sender: mpsc::Sender<InternalError>
 }
@@ -133,6 +139,18 @@ impl Value {
             config,
             meili_client,
             error_sender,
+            auth: storage::BinaryTree::open(storage::binary_tree::OpenConfig {
+                mode,
+                files: storage::binary_tree::OpenFiles {
+                    nodes: open_file!("auth_nodes"),
+                    free_ids: open_file!("auth_free_ids"),
+                    header: open_file!("auth_header"),
+                },
+                max_margins: storage::binary_tree::OpenMaxMargins {
+                    nodes: 20,
+                    free_ids: 20,
+                },
+            })?,
             users: storage::IndexedDynamic::open(storage::indexed_dynamic::OpenConfig {
                 mode,
                 files: storage::indexed_dynamic::OpenFiles {
@@ -160,18 +178,33 @@ impl Value {
                     free_ids: 20,
                 },
             })?,
-            auth: storage::BinaryTree::open(storage::binary_tree::OpenConfig {
+            projects: storage::IndexedDynamic::open(storage::indexed_dynamic::OpenConfig {
+                mode,
+                files: storage::indexed_dynamic::OpenFiles {
+                    raw_entries: open_file!("projects_raw_entries"),
+                    raw_free_locations: open_file!("projects_raw_free_locations"),
+                    indices: open_file!("projects_indices"),
+                    free_ids: open_file!("projects_free_ids")
+                },
+                max_margins: storage::indexed_dynamic::OpenMaxMargins {
+                    raw_entries: 100,
+                    raw_free_locations: 20,
+                    indices: 20,
+                    free_ids: 20,
+                }
+            })?,
+            projects_id_index: storage::BinaryTree::open(storage::binary_tree::OpenConfig {
                 mode,
                 files: storage::binary_tree::OpenFiles {
-                    nodes: open_file!("auth_nodes"),
-                    free_ids: open_file!("auth_free_ids"),
-                    header: open_file!("auth_header"),
+                    nodes: open_file!("projects_id_index_nodes"),
+                    free_ids: open_file!("projects_id_index_free_ids"),
+                    header: open_file!("projects_id_index_header"),
                 },
                 max_margins: storage::binary_tree::OpenMaxMargins {
                     nodes: 20,
                     free_ids: 20,
                 },
-            })?
+            })?,
         })
     }
 

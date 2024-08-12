@@ -21,6 +21,7 @@ pub enum RequestError {
 #[derive(Debug)]
 pub enum Error {
     ParseUsername,
+    ParseDateTime(chrono::ParseError)
 }
 
 #[derive(Debug)]
@@ -123,6 +124,57 @@ impl State {
         Ok(())
     }
 
+    pub async fn request_project(&mut self) -> Result<(), RequestError> {
+        type E = RequestError;
+        if let Some(request) = self.request_queue.projects.pop() {
+            let out = self.http_send(request).await.map_err(E::HttpSend)?;
+            if let Ok(out) = out {
+                println!("Project id: {}", out.id);
+                let Ok(author_name) = out.author.name.parse() else {
+                    self.error_queue.push(Error::ParseUsername);
+                    return Ok(());
+                };
+                let created = match chrono::DateTime::parse_from_rfc3339(&out.history.created) {
+                    Ok(v) => v,
+                    Err(e) => {
+                        self.error_queue.push(Error::ParseDateTime(e));
+                        return Ok(());
+                    },
+                };
+                let modified = match chrono::DateTime::parse_from_rfc3339(&out.history.modified) {
+                    Ok(v) => v,
+                    Err(e) => {
+                        self.error_queue.push(Error::ParseDateTime(e));
+                        return Ok(());
+                    },
+                };
+                let shared = match chrono::DateTime::parse_from_rfc3339(&out.history.shared) {
+                    Ok(v) => v,
+                    Err(e) => {
+                        self.error_queue.push(Error::ParseDateTime(e));
+                        return Ok(());
+                    },
+                };
+                self.response_queue.projects.push(db::Project {
+                    id: out.id,
+                    public: out.public,
+                    comments_allowed: out.comments_allowed,
+                    is_published: out.is_published,
+                    author_id: out.author.id,
+                    author_name,
+                    author_scratch_team: out.author.scratch_team,
+                    created,
+                    modified,
+                    shared,
+                    title: out.title,
+                    description: out.description,
+                    instructions: out.instructions,
+                });
+            }
+        }
+        Ok(())
+    }
+
     pub async fn request_user_followers(&mut self) -> Result<(), RequestError> {
         type E = RequestError;
         if let Some(req) = self.request_queue.users_followers.pop() {
@@ -181,14 +233,16 @@ impl State {
 
 #[derive(Default)]
 pub struct ResponseQueue {
-    pub users: Vec<db::User<'static>>
+    pub users: Vec<db::User<'static>>,
+    pub projects: Vec<db::Project>,
 }
 
 #[derive(Default)]
 pub struct RequestQueue {
     pub users: Vec<rs2s::input::User<'static>>,
     pub users_followers: Vec<rs2s::input::user::Followers<'static>>,
-
+    pub users_projects: Vec<rs2s::input::user::Projects<'static>>,
+    pub projects: Vec<rs2s::input::Project>,
 }
 
 // pub struct BoundQueue<T> {

@@ -217,6 +217,15 @@ impl super::Value {
         match searched.find() {
             Ok(searched) => {
                 let id = unsafe { self.users_name_index.get_searched(&searched).unwrap() };
+                let res = self.meili_client.index("users")
+                    .delete_document(id)
+                    .await;
+
+                if let Err(e) = res {
+                    self.send_meili_error(e).await;
+                    Err(RemoveByNameError::Internal)?
+                }
+
                 if let Err(e) = unsafe { self.users.remove(id) } {
                     self.send_bindb_error(BindbErrorOp::RemoveUserByName, BindbErrorKind::IndexedDynamicRemove(e)).await;
                     Err(RemoveByNameError::Internal)?
